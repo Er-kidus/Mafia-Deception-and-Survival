@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mafia Game – Single Player (AI NPCs)</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: radial-gradient(circle at center,#0b0b15,#141426);
+    color: #fff;
+    margin: 0; overflow-x: hidden;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    min-height: 100vh; padding-top: 30px;
+  }
+  h1 { color:#ff4757;text-shadow:0 0 15px #ff4757; }
+  .screen { display:none; width:90%; max-width:900px; background:#1b1b2d;
+    border-radius:15px; padding:25px; box-shadow:0 0 25px rgba(255,71,87,0.2);
+    animation: fadeIn 0.6s ease forwards; }
+  .active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:scale(0.97);} to{opacity:1;transform:scale(1);} }
+
+  input,select,button {
+    padding:10px 14px; margin:6px; border-radius:8px; border:none;
+    font-size:1em;
+  }
+  button { background:#ff4757;color:#fff;cursor:pointer;transition:0.3s; }
+  button:hover { background:#ff6b81; }
+
+  #table {
+    position:relative; width:100%; height:400px;
+    border-radius:50%; margin-top:20px;
+  }
+  .player {
+    position:absolute; width:80px;height:80px;border-radius:50%;
+    background:#2f3542;display:flex;align-items:center;justify-content:center;
+    flex-direction:column; transition:transform .3s;
+  }
+  .player.alive:hover { transform:scale(1.1); }
+  .avatar { font-size:1.5em; font-weight:bold; }
+  .dead { opacity:.3; }
+
+  /* circular timer */
+  .timer-circle {
+    position:relative;width:100px;height:100px;margin:0 auto;
+  }
+  .timer-circle svg { transform:rotate(-90deg); }
+  .timer-circle circle {
+    fill:none; stroke-width:10; stroke-linecap:round;
+  }
+  .timer-bg { stroke:#333; }
+  .timer-fg { stroke:#ffa502; transition:stroke-dashoffset 1s linear; }
+  .timer-label { position:absolute;top:50%;left:50%;
+    transform:translate(-50%,-50%);font-size:1.3em; }
+
+  #chatBox {
+    background:#23233b;border-radius:10px;height:150px;
+    overflow-y:auto;padding:10px;margin-top:10px;
+  }
+  #chatBox p { margin:4px 0; }
+  #voteArea { margin-top:15px; }
+  .voteBar {
+    background:#3742fa;border-radius:8px;overflow:hidden;
+    margin:5px 0;height:20px;
+  }
+  .voteFill {
+    background:#70a1ff;height:100%;width:0%;transition:width .3s ease;
+  }
+  #result { text-align:center;font-size:1.3em;margin-top:15px; }
+</style>
+</head>
+<body>
+
+<h1>🕵️ Mafia Game</h1>
+
+<!-- Lobby -->
+<div id="lobby" class="screen active">
+  <h2>🎮 Create Room</h2>
+  <label>Total Players:</label><input type="number" id="totalPlayers" min="3" max="10" value="5"><br>
+  <label>Mafias:</label><input type="number" id="mafiaCount" min="1" max="4" value="2"><br>
+  <button onclick="createRoom()">Start Game</button>
+</div>
+
+<!-- Role Reveal -->
+<div id="reveal" class="screen">
+  <h2>🔮 Role Reveal</h2>
+  <div id="roleCard" style="width:150px;height:200px;margin:20px auto;
+       perspective:600px;cursor:pointer;">
+    <div id="cardInner" style="width:100%;height:100%;position:relative;
+         transform-style:preserve-3d;transition:transform .8s;">
+      <div id="cardFront" style="position:absolute;width:100%;height:100%;
+           background:#2f3542;border-radius:10px;backface-visibility:hidden;
+           display:flex;align-items:center;justify-content:center;font-size:1.5em;">
+           Tap to Reveal
+      </div>
+      <div id="cardBack" style="position:absolute;width:100%;height:100%;
+           background:#ff4757;border-radius:10px;backface-visibility:hidden;
+           transform:rotateY(180deg);
+           display:flex;align-items:center;justify-content:center;font-size:1.5em;font-weight:bold;">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Discussion -->
+<div id="discussion" class="screen">
+  <h2>💬 Discussion</h2>
+  <div class="timer-circle">
+    <svg width="100" height="100">
+      <circle class="timer-bg" cx="50" cy="50" r="45"></circle>
+      <circle class="timer-fg" cx="50" cy="50" r="45"
+              stroke-dasharray="282" stroke-dashoffset="0"></circle>
+    </svg>
+    <div class="timer-label" id="discussionTime">--</div>
+  </div>
+  <div id="table"></div>
+  <div id="chatBox"></div>
+  <input type="text" id="chatInput" placeholder="Type to join chat...">
+  <button onclick="playerChat()">Send</button>
+</div>
+
+<!-- Voting -->
+<div id="voting" class="screen">
+  <h2>🗳 Voting Phase</h2>
+  <div class="timer-circle">
+    <svg width="100" height="100">
+      <circle class="timer-bg" cx="50" cy="50" r="45"></circle>
+      <circle class="timer-fg" cx="50" cy="50" r="45"
+              stroke-dasharray="282" stroke-dashoffset="0"></circle>
+    </svg>
+    <div class="timer-label" id="voteTime">--</div>
+  </div>
+  <div id="voteArea"></div>
+</div>
+
+<!-- Elimination -->
+<div id="elimination" class="screen">
+  <h2>☠️ Elimination</h2>
+  <div id="elimText"></div>
+  <button onclick="nextRound()">Next Round</button>
+</div>
+
+<!-- End Game -->
+<div id="endgame" class="screen">
+  <h2 id="winnerText"></h2>
+  <div id="summary"></div>
+  <button onclick="restart()">Play Again</button>
+</div>
+
+<script>
+// ====== GLOBAL VARIABLES ======
+let totalPlayers = 5;
+let mafiaCount = 2;
+let civilianCount = 0;
+let players = [];
+let humanPlayer = {id: 1};
+let currentPhase = "lobby";
+let discussionTime = 30;
+let voteTime = 20;
+let discussionTimer, voteTimer;
+let round = 1;
+
+// ====== UTILITY FUNCTIONS ======
+function shuffle(array) {
+  return array.sort(() => Math.random() - 0.5);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  currentPhase = id;
+}
+
+// ====== LOBBY / ROOM CREATION ======
+function createRoom() {
+  totalPlayers = parseInt(document.getElementById("totalPlayers").value);
+  mafiaCount = parseInt(document.getElementById("mafiaCount").value);
+  if (mafiaCount >= totalPlayers) return alert("Mafia must be less than total players!");
+  civilianCount = totalPlayers - mafiaCount;
+  setupPlayers();
+  showScreen("reveal");
+  prepareRoleCard();
+}
+
+// ====== PLAYER SETUP ======
+function setupPlayers() {
+  players = [];
+  let roles = [];
+  for (let i = 0; i < mafiaCount; i++) roles.push("Mafia");
+  for (let i = 0; i < civilianCount; i++) roles.push("Civilian");
+  roles = shuffle(roles);
+
+  for (let i = 0; i < totalPlayers; i++) {
+    let p = {
+      id: i + 1,
+      role: roles[i],
+      alive: true,
+      suspicion: {}, // suspicion levels for other players
+      votes: 0,
+      isHuman: i === 0
+    };
+    // initialize suspicion
+    for (let j = 0; j < totalPlayers; j++) if (j !== i) p.suspicion[j + 1] = Math.random();
+    players.push(p);
+  }
+}
+
+// ====== ROLE REVEAL CARD ======
+function prepareRoleCard() {
+  const cardBack = document.getElementById("cardBack");
+  const humanRole = players.find(p => p.isHuman).role;
+  cardBack.innerText = humanRole;
+  const cardInner = document.getElementById("cardInner");
+  cardInner.onclick = () => { cardInner.style.transform = "rotateY(180deg)"; setTimeout(() => startDiscussion(), 2000); };
+}
+
+// ====== DISCUSSION PHASE ======
+function startDiscussion() {
+  showScreen("discussion");
+  renderTable();
+  document.getElementById("chatBox").innerHTML = "";
+  startDiscussionTimer(discussionTime);
+  simulateNPCChat();
+}
+
+// Circular player table layout
+function renderTable() {
+  const table = document.getElementById("table");
+  table.innerHTML = "";
+  const radius = 150;
+  const centerX = table.offsetWidth / 2 - 40;
+  const centerY = table.offsetHeight / 2 - 40;
+  const alivePlayers = players.filter(p => p.alive);
+  const angleStep = (2 * Math.PI) / alivePlayers.length;
+
+  alivePlayers.forEach((p, i) => {
+    const x = centerX + radius * Math.cos(i * angleStep);
+    const y = centerY + radius * Math.sin(i * angleStep);
+    const div = document.createElement("div");
+    div.className = "player" + (p.alive ? " alive" : "dead");
+    div.style.left = x + "px";
+    div.style.top = y + "px";
+    div.innerHTML = `<div class="avatar">${p.isHuman ? "YOU" : "P"+p.id}</div>`;
+    table.appendChild(div);
+  });
+}
+
+// Discussion timer
+function startDiscussionTimer(seconds) {
+  const fg = document.querySelector("#discussion .timer-fg");
+  let time = seconds;
+  fg.style.strokeDasharray = 282;
+  fg.style.strokeDashoffset = 0;
+  discussionTimer = setInterval(() => {
+    time--;
+    document.getElementById("discussionTime").innerText = time + "s";
+    fg.style.strokeDashoffset = 282 * (1 - time / seconds);
+    if (time <= 0) {
+      clearInterval(discussionTimer);
+      startVoting();
+    }
+  }, 1000);
+}
+
+// Player chat input
+function playerChat() {
+  const input = document.getElementById("chatInput");
+  if (!input.value) return;
+  addChat("YOU", input.value);
+  input.value = "";
+}
+
+// Add chat message
+function addChat(sender, text) {
+  const box = document.getElementById("chatBox");
+  const p = document.createElement("p");
+  p.innerHTML = `<strong>${sender}:</strong> ${text}`;
+  box.appendChild(p);
+  box.scrollTop = box.scrollHeight;
+}
+
+// Simulate NPC chat
+function simulateNPCChat() {
+  const aliveNPCs = players.filter(p => !p.isHuman && p.alive);
+  let chatCount = 0;
+  const interval = setInterval(() => {
+    if (chatCount > 6) { clearInterval(interval); return; }
+    const npc = aliveNPCs[Math.floor(Math.random() * aliveNPCs.length)];
+    const target = aliveNPCs.filter(p=>p.id!==npc.id)[Math.floor(Math.random()*(aliveNPCs.length-1))];
+    addChat("P"+npc.id, `I suspect P${target.id}`);
+    chatCount++;
+  }, 4000);
+}
+
+// ====== VOTING PHASE ======
+function startVoting() {
+  showScreen("voting");
+  renderVoteBars();
+  players.forEach(p => p.votes = 0);
+  startVoteTimer(voteTime);
+  npcVote();
+}
+
+function renderVoteBars() {
+  const area = document.getElementById("voteArea");
+  area.innerHTML = "";
+  players.filter(p=>p.alive).forEach(p=>{
+    const bar = document.createElement("div");
+    bar.className = "voteBar";
+    bar.id = "voteBar"+p.id;
+    bar.innerHTML = `<div class="voteFill" id="voteFill${p.id}"></div>P${p.id}`;
+    area.appendChild(bar);
+  });
+}
+
+function startVoteTimer(seconds) {
+  const fg = document.querySelector("#voting .timer-fg");
+  let time = seconds;
+  fg.style.strokeDasharray = 282;
+  fg.style.strokeDashoffset = 0;
+  voteTimer = setInterval(() => {
+    time--;
+    document.getElementById("voteTime").innerText = time + "s";
+    fg.style.strokeDashoffset = 282 * (1 - time / seconds);
+    if (time <= 0) {
+      clearInterval(voteTimer);
+      tallyVotes();
+    }
+  }, 1000);
+}
+
+// NPC votes
+function npcVote() {
+  const aliveNPCs = players.filter(p=>!p.isHuman && p.alive);
+  aliveNPCs.forEach(npc=>{
+    const choices = players.filter(p=>p.alive && p.id !== npc.id);
+    const sorted = choices.sort((a,b)=>npc.suspicion[b.id]-npc.suspicion[a.id]);
+    const target = sorted[0];
+    target.votes++;
+    document.getElementById("voteFill"+target.id).style.width = (target.votes/aliveNPCs.length*100)+"%";
+  });
+}
+
+// Player vote button (optional for later)
+function playerVote(targetId) {
+  const target = players.find(p=>p.id===targetId && p.alive);
+  if(!target) return;
+  target.votes++;
+  document.getElementById("voteFill"+target.id).style.width = (target.votes/(players.length-1)*100)+"%";
+}
+
+// ====== TALLY & ELIMINATION ======
+function tallyVotes() {
+  const alivePlayers = players.filter(p=>p.alive);
+  const maxVotes = Math.max(...alivePlayers.map(p=>p.votes));
+  const top = alivePlayers.filter(p=>p.votes===maxVotes);
+  let eliminated;
+  if (top.length === 1) eliminated = top[0];
+  else eliminated = top[Math.floor(Math.random()*top.length)];
+  eliminated.alive = false;
+  document.getElementById("elimText").innerText = `Player ${eliminated.id} was eliminated!\nRole: ${eliminated.role}`;
+  showScreen("elimination");
+}
+
+// ====== NEXT ROUND ======
+function nextRound() {
+  if (checkWin()) return;
+  round++;
+  startDiscussion();
+}
+
+// ====== CHECK WIN ======
+function checkWin() {
+  const aliveMafia = players.filter(p=>p.alive && p.role==="Mafia").length;
+  const aliveCiv = players.filter(p=>p.alive && p.role==="Civilian").length;
+  if (aliveMafia===0) endGame("Civilians Win!");
+  else if (aliveMafia >= aliveCiv) endGame("Mafia Win!");
+  else return false;
+  return true;
+}
+
+// ====== END GAME ======
+function endGame(text) {
+  showScreen("endgame");
+  document.getElementById("winnerText").innerText = text;
+  const summary = document.getElementById("summary");
+  summary.innerHTML = "";
+  players.forEach(p=>{
+    summary.innerHTML += `P${p.id} - ${p.role} - ${p.alive?"Alive":"Dead"}<br>`;
+  });
+}
+
+// ====== RESTART ======
+function restart() {
+  showScreen("lobby");
+  round = 1;
+  players = [];
+}
+
+</script>
+
+</body>
+</html>
