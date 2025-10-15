@@ -7,6 +7,7 @@ export default function registerSocket(io) {
   // ---------------- Create Room ----------------
   socket.on("createRoom", async ({ roomName, hostId, config }) => {
     const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    if(!hostId) return socket.emit("error", "Host ID is required");
 
     const newRoom = new Room({
       roomId,
@@ -44,10 +45,10 @@ export default function registerSocket(io) {
 
     room.players = room.players.filter(p => p.userId !== userId);
 
-    // Reassign host if needed
-    if (room.hostId === userId && room.players.length > 0) {
-      room.hostId = room.players[0].userId;
-    }
+  // Reassign host if needed
+  if (room.hostId === userId && room.players.length > 0) {
+    room.hostId = room.players[0].userId;
+  }
 
     // Delete room if empty
     if (room.players.length === 0) {
@@ -90,9 +91,34 @@ export default function registerSocket(io) {
   });
 
   // ---------------- Disconnect ----------------
-  socket.on("disconnect", async () => {
+socket.on("disconnect", async () => {
     console.log(`Player disconnected: ${socket.id}`);
-    // Optionally handle auto-leave logic if needed
+
+    // If your player records use a different userId than socket.id,
+    // you need to map socket.id -> userId (e.g. store socket.data.userId on join).
+    const rooms = await Room.find({ "players.userId": socket.id });
+    for (const room of rooms) {
+      // remove the disconnected player
+      room.players = room.players.filter(p => p.userId !== socket.id);
+
+      // Reassign host if needed
+      if (room.hostId === socket.id && room.players.length > 0) {
+        room.hostId = room.players[0].userId;
+      }
+
+      // Delete room if empty, otherwise save and notify clients
+      if (room.players.length === 0) {
+        await Room.deleteOne({ roomId: room.roomId });
+        io.to(room.roomId).emit("roomDeleted", { roomId: room.roomId });
+      } else {
+        await room.save();
+        io.to(room.roomId).emit("roomUpdated", room);
+      }
+
+      // Ensure socket leaves the room
+      socket.leave(room.roomId);
+    }
   });
-  });
+
+} );
 }
