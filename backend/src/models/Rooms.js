@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const playerSchema = new mongoose.Schema({
   userId: { type: String, required: true },
@@ -25,4 +25,6 @@ const roomSchema = new mongoose.Schema({
   currentTimer: { type: Number, default: 0 }
 }, { timestamps: true });
 
-module.exports = mongoose.model("Room", roomSchema);
+const Room = mongoose.model("Room", roomSchema);
+
+export default Room;
