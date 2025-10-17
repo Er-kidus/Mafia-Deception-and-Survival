@@ -234,7 +234,14 @@ router.post("/:roomId/start", (req, res) => {
  *         description: Room not found.
  */
 router.post("/:roomId/end", (req, res) => {
+
+  res.send(`End game in room with ID: ${req.params.id}`);
+});
+
+export default router;
+  
   res.send(`End game in room with ID: ${req.params.roomId}`);
 });
 
 export default router;
+
