@@ -1,0 +1,259 @@
+asyncapi: '2.6.0'
+info:
+  title: Mafia — Socket.io API
+  version: '1.0.0'
+  description: |
+    AsyncAPI description for the socket.io events used by the Mafia game backend.
+    This documents the events clients emit to the server (create/join/leave/update/start)
+    and the events the server emits to clients (roomUpdated, error).
+
+servers:
+  development:
+    url: http://localhost:8080
+    protocol: socketio
+    description: Local development socket.io server (express + socket.io)
+
+defaultContentType: application/json
+
+channels:
+  createRoom:
+    description: Client -> Server. Request to create a new game room.
+    subscribe:
+      summary: Client emits createRoom to ask the server to create a room.
+      message:
+        $ref: '#/components/messages/CreateRoom'
+
+  joinRoom:
+    description: Client -> Server. Request to join an existing room.
+    subscribe:
+      summary: Client emits joinRoom to join a room.
+      message:
+        $ref: '#/components/messages/JoinRoom'
+
+  leaveRoom:
+    description: Client -> Server. Request to leave a room.
+    subscribe:
+      summary: Client emits leaveRoom to leave a room.
+      message:
+        $ref: '#/components/messages/LeaveRoom'
+
+  updateConfig:
+    description: Client -> Server. Host updates room configuration.
+    subscribe:
+      summary: Client emits updateConfig with new config; only host is allowed.
+      message:
+        $ref: '#/components/messages/UpdateConfig'
+
+  startGame:
+    description: Client -> Server. Host requests the game to start.
+    subscribe:
+      summary: Client (host) emits startGame to begin the match.
+      message:
+        $ref: '#/components/messages/StartGame'
+
+  roomUpdated:
+    description: Server -> Clients. Sent whenever a room changes (created/updated/players joined/left/state changes).
+    publish:
+      summary: Server emits roomUpdated with the full room object.
+      message:
+        $ref: '#/components/messages/RoomUpdated'
+
+  error:
+    description: Server -> Clients. Send error messages back to a specific client.
+    publish:
+      summary: Server emits error messages.
+      message:
+        $ref: '#/components/messages/ErrorMessage'
+
+components:
+  messages:
+    CreateRoom:
+      name: CreateRoom
+      title: CreateRoom
+      summary: Create a new game room.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/CreateRoomPayload'
+
+    JoinRoom:
+      name: JoinRoom
+      summary: Join an existing room.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/JoinRoomPayload'
+
+    LeaveRoom:
+      name: LeaveRoom
+      summary: Leave a room.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/LeaveRoomPayload'
+
+    UpdateConfig:
+      name: UpdateConfig
+      summary: Update the room configuration (host only).
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/UpdateConfigPayload'
+
+    StartGame:
+      name: StartGame
+      summary: Host requests to start the game.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/StartGamePayload'
+
+    RoomUpdated:
+      name: RoomUpdated
+      summary: Room object emitted when room state changes.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/Room'
+
+    ErrorMessage:
+      name: ErrorMessage
+      summary: Simple error message emitted by server.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/Error'
+
+  schemas:
+    CreateRoomPayload:
+      type: object
+      required:
+        - hostId
+        - config
+      properties:
+        roomName:
+          type: string
+          description: Optional human-friendly room name
+        hostId:
+          type: string
+          description: Socket or user id for the host
+        config:
+          $ref: '#/components/schemas/Config'
+
+    JoinRoomPayload:
+      type: object
+      required:
+        - roomId
+        - userId
+      properties:
+        roomId:
+          type: string
+        userId:
+          type: string
+
+    LeaveRoomPayload:
+      type: object
+      required:
+        - roomId
+        - userId
+      properties:
+        roomId:
+          type: string
+        userId:
+          type: string
+
+    UpdateConfigPayload:
+      type: object
+      required:
+        - roomId
+        - hostId
+        - newConfig
+      properties:
+        roomId:
+          type: string
+        hostId:
+          type: string
+        newConfig:
+          $ref: '#/components/schemas/Config'
+
+    StartGamePayload:
+      type: object
+      required:
+        - roomId
+        - hostId
+      properties:
+        roomId:
+          type: string
+        hostId:
+          type: string
+
+    Room:
+      type: object
+      required:
+        - roomId
+        - hostId
+        - players
+      properties:
+        roomId:
+          type: string
+        roomName:
+          type: string
+        hostId:
+          type: string
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/Player'
+        config:
+          $ref: '#/components/schemas/Config'
+        gameState:
+          type: string
+          description: Current game state (e.g. setup, discussion, voting, finished)
+        currentTimer:
+          type: integer
+
+    Player:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: string
+        role:
+          type: string
+          nullable: true
+        alive:
+          type: boolean
+        pinnedSuspects:
+          type: array
+          items:
+            type: string
+
+    Config:
+      type: object
+      properties:
+        maxPlayers:
+          type: integer
+          default: 8
+        mafiaCount:
+          type: integer
+          default: 2
+        roundTime:
+          type: integer
+          description: Time per round in seconds
+          default: 60
+        skipVoteEnabled:
+          type: boolean
+          default: false
+
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+          description: Optional machine-readable error code
+
+tags:
+  - name: rooms
+    description: Events related to room lifecycle and gameplay
+
+externalDocs:
+  description: How to run the server
+  url: https://github.com/Er-kidus/Mafia-Deception-and-Survival#backend
