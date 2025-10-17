@@ -1,13 +1,12 @@
 import Room from "../src/models/Rooms.js";
 
-export default function registerSocket(io) {
-  io.on("connection", (socket) => {
-    console.log(`Player connected: ${socket.id}`);
+export function handleRoomSocket(io, socket) {
+  console.log(`Player connected: ${socket.id}`);
 
   // ---------------- Create Room ----------------
   socket.on("createRoom", async ({ roomName, hostId, config }) => {
     const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
-    if(!hostId) return socket.emit("error", "Host ID is required");
+    if (!hostId) return socket.emit("error", "Host ID is required");
 
     const newRoom = new Room({
       roomId,
@@ -15,7 +14,7 @@ export default function registerSocket(io) {
       players: [{ userId: hostId, role: null, alive: true, pinnedSuspects: [] }],
       config,
       gameState: "setup",
-      currentTimer: 0
+      currentTimer: 0,
     });
 
     await newRoom.save();
@@ -43,12 +42,12 @@ export default function registerSocket(io) {
     const room = await Room.findOne({ roomId });
     if (!room) return;
 
-    room.players = room.players.filter(p => p.userId !== userId);
+    room.players = room.players.filter((p) => p.userId !== userId);
 
-  // Reassign host if needed
-  if (room.hostId === userId && room.players.length > 0) {
-    room.hostId = room.players[0].userId;
-  }
+    // Reassign host if needed
+    if (room.hostId === userId && room.players.length > 0) {
+      room.hostId = room.players[0].userId;
+    }
 
     // Delete room if empty
     if (room.players.length === 0) {
@@ -91,7 +90,7 @@ export default function registerSocket(io) {
   // });
 
   // ---------------- Disconnect ----------------
-socket.on("disconnect", async () => {
+  socket.on("disconnect", async () => {
     console.log(`Player disconnected: ${socket.id}`);
 
     // If your player records use a different userId than socket.id,
@@ -99,7 +98,7 @@ socket.on("disconnect", async () => {
     const rooms = await Room.find({ "players.userId": socket.id });
     for (const room of rooms) {
       // remove the disconnected player
-      room.players = room.players.filter(p => p.userId !== socket.id);
+      room.players = room.players.filter((p) => p.userId !== socket.id);
 
       // Reassign host if needed
       if (room.hostId === socket.id && room.players.length > 0) {
@@ -119,6 +118,4 @@ socket.on("disconnect", async () => {
       socket.leave(room.roomId);
     }
   });
-
-} );
 }
