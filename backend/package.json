@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "create-room": "node socket/testClient.js",
+    "join-room": "node socket/joinTestClient.js",
+    "leave-room": "node socket/testLeaveRoom.js",
     "seed": "node seedAdmin.js"
   },
   "keywords": [],
