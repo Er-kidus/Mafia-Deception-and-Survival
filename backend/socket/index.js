@@ -1,10 +1,7 @@
-// src/config/socket.js
-import { Server } from "socket.io";
-import { handleRoomSocket } from "../sockets/roomSocket.js";
+// Socket registration
+import { handleRoomSocket } from "../socket/roomSocket.js";
 
-export const initSocket = (server) => {
-  const io = new Server(server, { cors: { origin: "*" } });
-
+export default function registerSocket(io) {
   io.on("connection", (socket) => {
     console.log(`🟢 Connected: ${socket.id}`);
 
@@ -14,4 +11,4 @@ export const initSocket = (server) => {
       console.log(`🔴 Disconnected: ${socket.id}`);
     });
   });
-};
+}
