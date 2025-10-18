@@ -13,11 +13,16 @@ socket.on("connect", () => {
     hostId: socket.id,
     // players:[{ userId: hostId, role: null, alive: true, pinnedSuspects: [] }],
     config: {
-      maxPlayers: 6,
-      mafiaCount: 2,
-      roundTime: 60,
-      skipVoteEnabled: false
-    }
+      clueTime: 5,
+      firstDiscussionTime: 10,
+      secondDiscussionTime: 15,
+      argueTime: 15,
+      defendTime: 10,
+      voteTime: 1,
+      maxPlayers: 10,
+      mafiaCount: 3,
+      skipVoteEnabled: true,
+    },
   });
 });
 

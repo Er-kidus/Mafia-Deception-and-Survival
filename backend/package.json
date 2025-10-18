@@ -9,7 +9,9 @@
     "create-room": "node socket/testClient.js",
     "join-room": "node socket/joinTestClient.js",
     "leave-room": "node socket/testLeaveRoom.js",
-    "seed": "node seedAdmin.js"
+    "seed": "node seedAdmin.js",
+    "test-start": "node socket/testStartClient.js",
+    "test-game": "node socket/testGame.js"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +27,7 @@
     "mongoose": "^8.19.1",
     "nodemailer": "^7.0.9",
     "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "validator": "^13.15.15"

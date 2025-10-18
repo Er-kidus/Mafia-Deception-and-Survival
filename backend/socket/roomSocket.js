@@ -11,7 +11,9 @@ export function handleRoomSocket(io, socket) {
     const newRoom = new Room({
       roomId,
       hostId,
-      players: [{ userId: hostId, role: null, alive: true, pinnedSuspects: [] }],
+      players: [
+        { userId: hostId, role: null, alive: true, pinnedSuspects: [] },
+      ],
       config,
       gameState: "setup",
       currentTimer: 0,
