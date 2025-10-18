@@ -10,7 +10,6 @@
     "join-room": "node socket/joinTestClient.js",
     "leave-room": "node socket/testLeaveRoom.js",
     "seed": "node seedAdmin.js",
-    "test-start": "node socket/testStartClient.js",
     "test-game": "node socket/testGame.js"
   },
   "keywords": [],
