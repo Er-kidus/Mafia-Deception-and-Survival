@@ -9,8 +9,8 @@
     "create-room": "node socket/testClient.js",
     "join-room": "node socket/joinTestClient.js",
     "leave-room": "node socket/testLeaveRoom.js",
-    "seed": "node seedAdmin.js",
-    "test-game": "node socket/testGame.js"
+    "config-room": "node socket/testUpdateConfig.js",
+    "seed": "node seedAdmin.js"
   },
   "keywords": [],
   "author": "",

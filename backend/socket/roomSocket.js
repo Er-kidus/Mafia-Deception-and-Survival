@@ -69,28 +69,10 @@ export function handleRoomSocket(io, socket) {
 
     room.config = { ...room.config, ...newConfig };
     await room.save();
-    io.to(roomId).emit("roomUpdated", room);
+    io.to(roomId).emit("roomUpdated", room.config);
   });
 
-  // ---------------- Start Game ----------------
-  // socket.on("startGame", async ({ roomId, hostId }) => {
-  //   const room = await Room.findOne({ roomId });
-  //   if (!room || room.hostId !== hostId) return;
-
-  //   // Assign roles randomly
-  //   const totalPlayers = room.players.length;
-  //   const mafiaCount = room.config.mafiaCount;
-  //   const shuffled = room.players.sort(() => Math.random() - 0.5);
-
-  //   shuffled.forEach((p, index) => {
-  //     p.role = index < mafiaCount ? "Mafia" : "Civilian";
-  //   });
-
-  //   room.gameState = "discussion"; // first phase
-  //   await room.save();
-  //   io.to(roomId).emit("roomUpdated", room);
-  // });
-
+  
   // ---------------- Disconnect ----------------
   socket.on("disconnect", async () => {
     console.log(`Player disconnected: ${socket.id}`);
