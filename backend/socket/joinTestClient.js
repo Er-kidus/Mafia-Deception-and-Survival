@@ -5,7 +5,11 @@ import { io } from "socket.io-client";
 const SERVER_URL = "http://localhost:8080";
 
 // Replace this with the room ID you want to join
+<<<<<<< HEAD
 const ROOM_ID ="IAWEZU"; // e.g. "X8J1ZL"
+=======
+const ROOM_ID = "W8H8WX"; // e.g. "X8J1ZL"
+>>>>>>> a2f96d4c04e73929ecb14922d0c54f3c16579859
 
 const player = io(SERVER_URL);
 
@@ -15,7 +19,7 @@ player.on("connect", () => {
   // Emit joinRoom event
   player.emit("joinRoom", {
     roomId: ROOM_ID,
-    userId: player.id
+    userId: player.id,
   });
 });
 
@@ -23,7 +27,10 @@ player.on("connect", () => {
 player.on("roomUpdated", (roomData) => {
   console.log("Joined room successfully!");
   console.log("Room Info:", roomData);
-  console.log("Current Players:", roomData.players.map(p => p.userId));
+  console.log(
+    "Current Players:",
+    roomData.players.map((p) => p.userId)
+  );
 });
 
 // Handle errors from server

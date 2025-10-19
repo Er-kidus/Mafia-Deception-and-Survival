@@ -239,9 +239,4 @@ router.post("/:roomId/end", (req, res) => {
 });
 
 export default router;
-  
-  res.send(`End game in room with ID: ${req.params.roomId}`);
-});
-
-export default router;
 

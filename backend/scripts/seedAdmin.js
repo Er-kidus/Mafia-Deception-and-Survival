@@ -15,9 +15,9 @@ async function seedAdmin() {
 
     // Create new admin user
     const adminUser = new User({
-      name: "System Administrator",
-      email: config.adminEmail,
-      password: config.adminPassword,
+      username: "System Administrator",
+      email: config.ADMIN_EMAIL,
+      password: config.ADMIN_PASS,
       role: "admin",
     });
 
