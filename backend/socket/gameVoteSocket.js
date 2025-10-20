@@ -27,7 +27,9 @@ export default function registerGameSocket(io, socket) {
     const room = await Room.findOne({ roomId });
     if (!room || room.gameStatus !== "voting") return;
 
-    const voter = room.players.find(p => p.userId === voterId && p.isAlive===true);
+    const voter = room.players.find(
+      (p) => p.userId === voterId && p.isAlive === true
+    );
     if (!voter) return;
 
     if (room.votes[voterId]) return; // prevent double vote
@@ -43,7 +45,7 @@ export default function registerGameSocket(io, socket) {
     });
 
     // progress update
-    const alive = room.players.filter(p => p.isAlive===true).length;
+    const alive = room.players.filter((p) => p.isAlive === true).length;
     const votesCount = Object.keys(room.votes).length;
     io.to(roomId).emit("voteProgress", { votesCount, total: alive });
 
@@ -51,7 +53,6 @@ export default function registerGameSocket(io, socket) {
       endVotingPhase(io, roomId);
     }
   });
-
 
   // ---------------- Helper: End Voting ----------------
   async function endVotingPhase(io, roomId) {
@@ -74,14 +75,13 @@ export default function registerGameSocket(io, socket) {
       }
     }
 
-
     // eliminate that player
     if (eliminatedId) {
-      const player = room.players.find(p => p.userId === eliminatedId);
+      const player = room.players.find((p) => p.userId === eliminatedId);
       if (player) player.isAlive = false;
     }
 
-    room.gameStatus = "result";
+    room.gameStatus = "elimination";
     await room.save();
 
     io.to(roomId).emit("votingResult", {
@@ -91,6 +91,5 @@ export default function registerGameSocket(io, socket) {
         ? `💀 ${eliminatedId} has been eliminated!`
         : "No one was eliminated (tie).",
     });
-
   }
 }
