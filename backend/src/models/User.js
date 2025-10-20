@@ -53,7 +53,11 @@ const userSchema = mongoose.Schema(
       minlength: [6, "Password must be at least 6 characters long"],
       select: false,
     },
-    avatarUrl: String,
+    avatarUrl: {
+      type: String,
+      default:
+        "https://tse1.mm.bing.net/th/id/OIP.WafwdUOq5b5T7RVq_rUJoQHaHa?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3",
+    },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
     isActive: {
