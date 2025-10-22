@@ -18,11 +18,24 @@ const roomSchema = new mongoose.Schema(
       secondDiscussionTime: { type: Number },
       argueTime: { type: Number },
       defendTime: { type: Number },
-      voteTime: { type: Number, default: 1 },
+      voteTime: { type: Number, default: 10 },
       maxPlayers: { type: Number },
-      mafiaCount: { type: Number, default: 1 },
+      mafiaCount: { type: Number },
       skipVoteEnabled: { type: Boolean, default: false },
+<<<<<<< HEAD
     
+=======
+      mafiaKillTime: { type: Number, default: 10 },
+    },
+    winner: {
+      type: String,
+      enum: ["Mafia", "Civilians", null],
+      default: null,
+    },
+    votes: {
+      type: Object,
+      default: {},
+>>>>>>> b551126f3a0d309b24e669dcf414ef98426bd02c
     },
     gameState: {
       type: String,
@@ -35,6 +48,7 @@ const roomSchema = new mongoose.Schema(
         "argue",
         "defend",
         "voting",
+        "mafiaKill",
         "elimination",
         "ended",
       ],

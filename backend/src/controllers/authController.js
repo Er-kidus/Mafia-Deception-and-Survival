@@ -166,10 +166,32 @@ export const changePassword = async (req, res) => {
   }
 };
 
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user;
+    const { username, email, nickname } = req.body;
+    const updatedUserData = { username, email, nickname };
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updatedUserData, {
+      new: true,
+      runValidator: true,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   registration,
   login,
   forgetPassword,
   resetPassword,
-  changePassword, 
+  changePassword,
+  updateProfile,
 };

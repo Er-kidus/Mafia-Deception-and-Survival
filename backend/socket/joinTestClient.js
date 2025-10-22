@@ -5,7 +5,11 @@ import { io } from "socket.io-client";
 const SERVER_URL = "http://localhost:8080";
 
 // Replace this with the room ID you want to join
+<<<<<<< HEAD
 const ROOM_ID ="IAWEZU"; // e.g. "X8J1ZL"
+=======
+const ROOM_ID = "DAGSZX"; // e.g. "X8J1ZL"
+>>>>>>> b551126f3a0d309b24e669dcf414ef98426bd02c
 
 const player = io(SERVER_URL);
 
