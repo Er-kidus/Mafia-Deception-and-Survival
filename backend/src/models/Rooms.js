@@ -1,17 +1,18 @@
 import mongoose from "mongoose";
 
 const playerSchema = new mongoose.Schema({
-  userId: { type: String, required: true },
+  userId: { type: String, required: true ,ref:"User"},
   role: { type: String, enum: ["Mafia", "Civilian", null], default: null },
   alive: { type: Boolean, default: true },
   pinnedSuspects: [{ type: String }], // Array of userIds
+  
 });
 
 const roomSchema = new mongoose.Schema(
   {
     roomId: { type: String, required: true, unique: true },
     hostId: { type: String, required: true },
-    players: { type: [playerSchema], default: [] },
+    players: { type: [playerSchema], default: [],},
     config: {
       clueTime: { type: Number },
       firstDiscussionTime: { type: Number },
@@ -36,6 +37,10 @@ const roomSchema = new mongoose.Schema(
       type: Object,
       default: {},
 >>>>>>> b551126f3a0d309b24e669dcf414ef98426bd02c
+    },
+    topVoted: {
+      type: [String],
+      default: [],
     },
     gameState: {
       type: String,
