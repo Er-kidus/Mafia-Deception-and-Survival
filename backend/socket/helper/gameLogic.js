@@ -1,6 +1,7 @@
 // socket/helpers/gameLogic.js
+import { Socket } from "socket.io-client";
 import Room from "../../src/models/Rooms.js";
-
+import startVotingPhase from "../gameVoteSocket.js";
 const activeTimers = new Map();
 
 export async function advanceGameState(roomId, io) {
@@ -36,15 +37,23 @@ export async function advanceGameState(roomId, io) {
     case "defend":
       room.gameState = "voting";
       room.currentTimer = room.config.voteTime;
+      startVotingPhase(roomId);
+
       break;
 
     case "voting":
+      // check if there is a tie in votes
+      if(room.topVoted.length > 1){
+        room.gameState = "discussion_1";
+        room.currentTimer = room.config.firstDiscussionTime;
+        break;
+      }
       room.gameState = "elimination";
       room.currentTimer = 0;
       break;
 
     case "elimination":
-      if (!room.voting || Object.keys(room.voting).length === 0) {
+      if (!room.votes || Object.keys(room.votes).length === 0) {
         room.gameState = "mafiaKill";
         room.currentTimer = room.config.mafiaKillTime;
         break;
@@ -58,6 +67,7 @@ export async function advanceGameState(roomId, io) {
       if (aliveMafia === 0) {
         room.gameState = "ended";
         room.winner = "civilians";
+        
       } else if (aliveMafia >= aliveCivilians) {
         room.gameState = "ended";
         room.winner = "mafia";
