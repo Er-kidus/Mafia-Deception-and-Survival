@@ -22,6 +22,7 @@ const roomSchema = new mongoose.Schema(
       maxPlayers: { type: Number },
       mafiaCount: { type: Number, default: 1 },
       skipVoteEnabled: { type: Boolean, default: false },
+    
     },
     gameState: {
       type: String,
