@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import config from "../config/config.js";
 import sendEmail from "../utils/sendEmail.js";
 import crypto from "crypto";
+import { uploadToCloudinary } from "../middleware/uploadMiddleware.js";
 
 const generateToken = (user) => {
   return jwt.sign({ id: user._id }, config.JWT_SECRET, {
@@ -166,15 +167,24 @@ export const changePassword = async (req, res) => {
   }
 };
 
-export const updateProfile = async (req, res) => {
+export const updateProfile = async (req, res, next) => {
   try {
     const userId = req.user;
     const { username, email, nickname } = req.body;
-    const updatedUserData = { username, email, nickname };
+
+    const updatedUserData = {};
+    if (username) updatedUserData.username = username;
+    if (email) updatedUserData.email = email;
+    if (nickname) updatedUserData.nickname = nickname;
+
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file.buffer, "users");
+      updatedUserData.avatar = result.secure_url;
+    }
 
     const updatedUser = await User.findByIdAndUpdate(userId, updatedUserData, {
       new: true,
-      runValidator: true,
+      runValidators: true,
     });
 
     res.status(200).json({

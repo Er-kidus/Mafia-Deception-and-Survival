@@ -8,6 +8,7 @@ import {
   updateProfile,
 } from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
+import { upload } from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
@@ -233,6 +234,11 @@ router.post("/change-password", protect, changePassword);
  *         description: Unauthorized
  */
 
-router.patch("/update-profile", protect, updateProfile);
+router.patch(
+  "/update-profile",
+  protect,
+  upload.single("avatar"),
+  updateProfile
+);
 
 export default router;

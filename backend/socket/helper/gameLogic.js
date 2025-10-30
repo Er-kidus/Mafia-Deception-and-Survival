@@ -44,7 +44,7 @@ export async function advanceGameState(roomId, io) {
       break;
 
     case "elimination":
-      if (!room.voting || Object.keys(room.voting).length === 0) {
+      if (!room.votes || Object.keys(room.votes).length === 0) {
         room.gameState = "mafiaKill";
         room.currentTimer = room.config.mafiaKillTime;
         break;
@@ -62,13 +62,6 @@ export async function advanceGameState(roomId, io) {
         room.gameState = "ended";
         room.winner = "mafia";
       } else {
-        const aliveMafia = room.players.filter(
-          (p) => p.alive && p.role === "mafia"
-        ).length;
-        const aliveCivilians = room.players.filter(
-          (p) => p.alive && p.role === "civilian"
-        ).length;
-
         const difference = aliveCivilians - aliveMafia;
 
         if (difference >= 3) {
