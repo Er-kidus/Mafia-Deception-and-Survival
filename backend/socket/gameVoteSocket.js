@@ -1,7 +1,7 @@
-import Room from "../models/Room.js";
+import Room from "../src/models/Rooms.js";
 
- // ---------------- Start Voting Phase ----------------
- export async function startVotingPhase(roomId) {
+// ---------------- Start Voting Phase ----------------
+export async function startVotingPhase(roomId) {
   const room = await Room.findOne({ roomId });
   if (!room) return;
 
@@ -23,7 +23,7 @@ export default function registerGameSocket(io, socket) {
       const room = await Room.findOne({ roomId });
       if (!room || room.gameStatus !== "voting") return;
 
-      const voter = room.players.find(p => p.userId === voterId && p.isAlive);
+      const voter = room.players.find((p) => p.userId === voterId && p.isAlive);
       if (!voter || room.votes[voterId]) return;
 
       room.votes[voterId] = targetId;
@@ -35,7 +35,7 @@ export default function registerGameSocket(io, socket) {
         message: `${voter.name} voted for ${targetId}`,
       });
 
-      const alive = room.players.filter(p => p.isAlive).length;
+      const alive = room.players.filter((p) => p.isAlive).length;
       const votesCount = Object.keys(room.votes).length;
 
       io.to(roomId).emit("voteProgress", { votesCount, total: alive });
@@ -74,7 +74,9 @@ export default function registerGameSocket(io, socket) {
       let eliminatedId = null;
       if (topVoted.length === 1) {
         eliminatedId = topVoted[0];
-        const player = room.players.find(p => p._id.toString() === eliminatedId);
+        const player = room.players.find(
+          (p) => p._id.toString() === eliminatedId
+        );
         if (player) player.isAlive = false;
 
         room.gameStatus = "elimination";
@@ -91,7 +93,6 @@ export default function registerGameSocket(io, socket) {
           ? `💀 ${eliminatedId} has been eliminated!`
           : "🤝 No one was eliminated (tie).",
       });
-
     } catch (err) {
       console.error("Error in endVotingPhase:", err);
     }
