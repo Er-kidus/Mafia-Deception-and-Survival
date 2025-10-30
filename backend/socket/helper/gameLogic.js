@@ -72,13 +72,6 @@ export async function advanceGameState(roomId, io) {
         room.gameState = "ended";
         room.winner = "mafia";
       } else {
-        const aliveMafia = room.players.filter(
-          (p) => p.alive && p.role === "mafia"
-        ).length;
-        const aliveCivilians = room.players.filter(
-          (p) => p.alive && p.role === "civilian"
-        ).length;
-
         const difference = aliveCivilians - aliveMafia;
 
         if (difference >= 3) {
