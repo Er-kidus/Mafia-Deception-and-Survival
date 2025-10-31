@@ -53,7 +53,11 @@ const userSchema = mongoose.Schema(
       minlength: [6, "Password must be at least 6 characters long"],
       select: false,
     },
-    avatarUrl: String,
+    avatar: {
+      type: String,
+      default:
+        "https://res.cloudinary.com/adamtcloud/image/upload/v1761333355/e6chal1pb4ujw1emkk3o.avif",
+    },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
     isActive: {

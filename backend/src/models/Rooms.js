@@ -1,29 +1,63 @@
 import mongoose from "mongoose";
 
 const playerSchema = new mongoose.Schema({
-  userId: { type: String, required: true },
+  userId: { type: String, required: true, ref: "User" },
   role: { type: String, enum: ["Mafia", "Civilian", null], default: null },
   alive: { type: Boolean, default: true },
-  pinnedSuspects: [{ type: String }] // Array of userIds
+  pinnedSuspects: [{ type: String }], // Array of userIds
 });
 
-const roomSchema = new mongoose.Schema({
-  roomId: { type: String, required: true, unique: true },
-  hostId: { type: String, required: true },
-  players: { type: [playerSchema], default: [] },
-  config: {
-    maxPlayers: { type: Number, default: 10 },
-    mafiaCount: { type: Number, default: 2 },
-    skipVoteEnabled: { type: Boolean, default: false },
-    mafiaKillsPerGame: { type: Boolean, default: true }
+const roomSchema = new mongoose.Schema(
+  {
+    roomId: { type: String, required: true, unique: true },
+    hostId: { type: String, required: true },
+    players: { type: [playerSchema], default: [] },
+    config: {
+      clueTime: { type: Number },
+      firstDiscussionTime: { type: Number },
+      secondDiscussionTime: { type: Number },
+      argueTime: { type: Number },
+      defendTime: { type: Number },
+      voteTime: { type: Number, default: 10 },
+      maxPlayers: { type: Number },
+      mafiaCount: { type: Number },
+      skipVoteEnabled: { type: Boolean, default: false },
+      mafiaKillTime: { type: Number, default: 10 },
+    },
+    winner: {
+      type: String,
+      enum: ["Mafia", "Civilians", null],
+      default: null,
+    },
+    votes: {
+      type: Object,
+      default: {},
+    },
+    topVoted: {
+      type: [String],
+      default: [],
+    },
+    gameState: {
+      type: String,
+      enum: [
+        "setup",
+        "viewCards",
+        "clue_time",
+        "discussion_1",
+        "discussion_2",
+        "argue",
+        "defend",
+        "voting",
+        "mafiaKill",
+        "elimination",
+        "ended",
+      ],
+      default: "setup",
+    },
+    currentTimer: { type: Number, default: 0 },
   },
-  gameState: { 
-    type: String, 
-    enum: ["setup", "discussion", "voting", "elimination", "ended"], 
-    default: "setup" 
-  },
-  currentTimer: { type: Number, default: 0 }
-}, { timestamps: true });
+  { timestamps: true }
+);
 
 const Room = mongoose.model("Room", roomSchema);
 

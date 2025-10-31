@@ -1,30 +1,38 @@
+// testCreateRoom.js
 import { io } from "socket.io-client";
 
-const URL = "http://localhost:8080";
-const players = [];
+const URL = "http://localhost:8080"; // your backend URL
+const socket = io(URL);
 
-for (let i = 1; i <= 4; i++) {
-  const socket = io(URL);
-  const userId = `player${i}`;
-  players.push(socket);
+socket.on("connect", () => {
+  console.log(`Connected with ID: ${socket.id}`);
 
-  socket.on("connect", () => {
-    console.log(`${userId} connected: ${socket.id}`);
-
-    if (i === 1) {
-      socket.emit("createRoom", {
-        roomName: "Auto Test",
-        hostId: userId,
-        config: { maxPlayers: 6, mafiaCount: 2, roundTime: 60 }
-      });
-    } else {
-      setTimeout(() => {
-        socket.emit("joinRoom", { roomId: "ZSCMZA", userId });
-      }, 2000 * i);
-    }
+  // Emit createRoom event to the server
+  socket.emit("createRoom", {
+    roomName: "Test Room",
+    hostId: socket.id,
+    // players:[{ userId: hostId, role: null, alive: true, pinnedSuspects: [] }],
+    config: {
+      clueTime: 5,
+      firstDiscussionTime: 10,
+      secondDiscussionTime: 15,
+      argueTime: 15,
+      defendTime: 10,
+      voteTime: 1,
+      maxPlayers: 10,
+      mafiaCount: 3,
+      skipVoteEnabled: true,
+    },
   });
+});
 
-  socket.on("roomUpdated", (room) => {
-    console.log(`${userId} sees room update:`, room.players.map(p => p.userId));
-  });
-}
+// Listen for confirmation from the server
+socket.on("roomUpdated", (room) => {
+  console.log("✅ Room created successfully:");
+  console.log(room);
+});
+
+// Optional: handle any error messages
+socket.on("errorMessage", (msg) => {
+  console.error("❌ Server Error:", msg);
+});

@@ -5,8 +5,10 @@ import {
   forgetPassword,
   resetPassword,
   changePassword,
+  updateProfile,
 } from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
+import { upload } from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
@@ -173,5 +175,70 @@ router.post("/reset-password/:token", resetPassword);
  *         description: Unauthorized
  */
 router.post("/change-password", protect, changePassword);
+/**
+ * @swagger
+ * /auth/update-profile:
+ *   patch:
+ *     summary: Update user profile (requires authentication)
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: NewAdam
+ *               email:
+ *                 type: string
+ *                 example: newadam@example.com
+ *               nickname:
+ *                 type: string
+ *                 example: Ace
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Profile updated successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: 67153fbe32c8ab0020b0e96d
+ *                     username:
+ *                       type: string
+ *                       example: NewAdam
+ *                     email:
+ *                       type: string
+ *                       example: newadam@example.com
+ *                     nickname:
+ *                       type: string
+ *                       example: Ace
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ */
+
+router.patch(
+  "/update-profile",
+  protect,
+  upload.single("avatar"),
+  updateProfile
+);
 
 export default router;
