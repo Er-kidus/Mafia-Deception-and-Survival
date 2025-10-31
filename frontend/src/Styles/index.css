@@ -1,1 +1,16 @@
+@import url("https://fonts.googleapis.com/css2?family=Irish+Grover&display=swap");
+
 @import "tailwindcss";
+
+@theme {
+  /* 🎨 Custom shadows */
+  --shadow-soft: 0 4px 15px rgba(0, 0, 0, 0.2);
+  --shadow-deep: 0 5px 10px rgba(0, 0, 0, 0.6);
+  --shadow-normal: 0 3px 5px rgba(0, 0, 0, 0.6);
+  --shadow-glow-blue: 0 0 5px var(--color-light-blue);
+
+  --font-govorner: "Irish Grover", system-ui;
+  --color-dark-blue: #250c7b;
+  --color-light-blue: #5e59b1;
+  --color-middle-blue: #4928a2;
+}
